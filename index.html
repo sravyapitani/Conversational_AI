@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Convai AI Interactive Studio & Playground</title>
+  <meta name="description" content="State-of-the-art interactive web client for Convai Conversational AI SDK with real-time audio, lipsync, ARKit blendshapes, and narrative triggers.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="dark-theme">
+  <!-- Top Navigation Bar -->
+  <header class="app-header">
+    <div class="header-left">
+      <div class="logo-mark">
+        <svg class="neural-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z"/>
+          <circle cx="12" cy="12" r="3" fill="currentColor"/>
+          <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+        </svg>
+      </div>
+      <div class="brand-text">
+        <div class="brand-title">CONVAI <span class="accent-text">STUDIO</span></div>
+        <div class="brand-subtitle">Conversational Web SDK v0.1.4</div>
+      </div>
+      <div class="status-pill" id="connectionStatusPill">
+        <span class="status-dot online"></span>
+        <span class="status-label" id="connectionStatusText">SDK Ready</span>
+      </div>
+    </div>
+
+    <div class="header-right">
+      <div class="mode-toggle-group">
+        <button class="mode-btn active" id="modeSimBtn" data-mode="simulation" title="Interactive simulation with speech & visualizer">
+          <span class="btn-icon">⚡</span> Simulation Mode
+        </button>
+        <button class="mode-btn" id="modeLiveBtn" data-mode="live" title="Connect directly to Convai Cloud gRPC">
+          <span class="btn-icon">🌐</span> Live Convai API
+        </button>
+      </div>
+
+      <button class="icon-action-btn" id="openSettingsBtn" title="Configure API Key & Character Settings">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="3"/>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+        </svg>
+        <span>API & Config</span>
+        <span class="badge-dot" id="configDot"></span>
+      </button>
+
+      <button class="icon-action-btn danger" id="resetSessionBtn" title="Reset Session & Clear Audio">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+          <path d="M3 3v5h5"/>
+        </svg>
+        <span>Reset</span>
+      </button>
+
+      <div class="audio-volume-control">
+        <button class="icon-btn-sm" id="toggleMuteBtn" title="Mute/Unmute Audio Output">
+          <svg id="volumeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+            <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.08"/>
+          </svg>
+        </button>
+        <input type="range" id="volumeSlider" min="0" max="1" step="0.05" value="1" title="Volume">
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Workspace Layout -->
+  <main class="studio-container">
+    <!-- Left Stage: Avatar, Hologram, Live Speech & Audio Visualizer -->
+    <section class="stage-section">
+      <div class="stage-card">
+        <!-- Character Profile Switcher -->
+        <div class="character-header">
+          <div class="character-meta">
+            <div class="character-avatar-mini" id="miniAvatar"></div>
+            <div>
+              <h2 class="character-name" id="charNameDisplay">Aria (Cybernetic Sentinel)</h2>
+              <div class="character-role" id="charRoleDisplay">Specialized in conversational intelligence & tactical guidance</div>
+            </div>
+          </div>
+          <div class="character-select-wrap">
+            <select id="characterPresetSelect" class="cyber-select">
+              <option value="aria" selected>Avatar: Aria (Cyber Sentinel)</option>
+              <option value="nexus">Avatar: Nexus-7 (Tactical Cyborg)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Avatar Holographic Visualizer Stage -->
+        <div class="avatar-stage-viewport" id="avatarStage">
+          <!-- Background Cyber Grid & Rings -->
+          <div class="hologram-rings">
+            <div class="ring ring-1"></div>
+            <div class="ring ring-2"></div>
+            <div class="ring ring-3"></div>
+          </div>
+
+          <!-- Avatar Image & Aura -->
+          <div class="avatar-frame" id="avatarFrame">
+            <img id="avatarImage" src="assets/avatar1.jpg" alt="Convai AI Character" class="avatar-img">
+            <div class="avatar-scanline"></div>
+            <div class="avatar-glow-pulse" id="avatarGlow"></div>
+            <div class="avatar-mouth-indicator" id="mouthIndicator"></div>
+          </div>
+
+          <!-- Live Visualizer Canvas (Audio Equalizer) -->
+          <canvas id="audioVisualizerCanvas" class="visualizer-canvas"></canvas>
+
+          <!-- Current AI Status Banner -->
+          <div class="ai-status-badge" id="aiStatusBadge">
+            <span class="ai-status-pulse"></span>
+            <span class="ai-status-text" id="aiStatusText">IDLE / STANDBY</span>
+          </div>
+
+          <!-- Live Subtitles / Real-time Transcript Overlay -->
+          <div class="live-subtitles-bar" id="liveSubtitles">
+            <div class="subtitles-icon">💬</div>
+            <div class="subtitles-text" id="subtitlesText">"Press and hold the microphone or type below to talk with me."</div>
+          </div>
+        </div>
+
+        <!-- Voice & Audio Control Deck -->
+        <div class="voice-command-deck">
+          <!-- Big Interactive Mic Button -->
+          <div class="mic-interaction-hub">
+            <div class="mic-ripple-container" id="micRipple">
+              <div class="ripple-circle r1"></div>
+              <div class="ripple-circle r2"></div>
+              <div class="ripple-circle r3"></div>
+            </div>
+
+            <button class="big-mic-btn" id="mainMicBtn" title="Hold or Click to Speak">
+              <svg class="mic-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+                <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+                <line x1="12" y1="19" x2="12" y2="23"/>
+                <line x1="8" y1="23" x2="16" y2="23"/>
+              </svg>
+            </button>
+          </div>
+
+          <div class="mic-controls-info">
+            <div class="mic-state-title" id="micStatusTitle">Click or Hold to Speak</div>
+            <div class="mic-state-desc" id="micStatusDesc">Mic active: 44.1 kHz PCM stream ready</div>
+            <div class="audio-meters-row">
+              <div class="vu-meter">
+                <div class="vu-bar" id="micVuBar"></div>
+              </div>
+              <div class="rec-timer" id="recTimer">00:00</div>
+            </div>
+          </div>
+
+          <div class="stage-audio-actions">
+            <button class="stage-btn" id="stopAudioBtn" title="Stop Character Audio">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="6" width="12" height="12"/></svg>
+              <span>Stop Audio</span>
+            </button>
+            <button class="stage-btn" id="pauseResumeBtn" title="Pause / Resume Audio">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+              <span id="pauseResumeLabel">Pause</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Quick Starters Prompts -->
+        <div class="quick-prompts-bar">
+          <span class="prompt-tag-title">Try asking:</span>
+          <button class="prompt-chip" data-prompt="Introduce yourself and your capabilities.">👋 Introduce yourself</button>
+          <button class="prompt-chip" data-prompt="What is your mission and primary directive?">🎯 What is your mission?</button>
+          <button class="prompt-chip" data-prompt="Explain how real-time conversational AI and lipsync work.">⚡ How does lipsync work?</button>
+          <button class="prompt-chip" data-prompt="Tell me an engaging sci-fi story in two sentences.">🚀 Tell a sci-fi story</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Right Pane: Multi-Tab Console (Chat, Visemes/Blendshapes, Narrative Triggers, Raw Logs) -->
+    <section class="console-section">
+      <div class="console-card">
+        <!-- Console Tabs Header -->
+        <div class="console-tabs-nav">
+          <button class="tab-btn active" data-tab="chat">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            <span>Live Chat</span>
+            <span class="tab-badge" id="chatCountBadge">0</span>
+          </button>
+          <button class="tab-btn" data-tab="telemetry">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+            <span>ARKit Visemes</span>
+          </button>
+          <button class="tab-btn" data-tab="triggers">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            <span>Narrative Triggers</span>
+          </button>
+          <button class="tab-btn" data-tab="logs">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
+            <span>gRPC Logs</span>
+          </button>
+        </div>
+
+        <!-- Tab 1: Live Chat Conversation Stream -->
+        <div class="tab-pane active" id="pane-chat">
+          <div class="chat-messages-container" id="chatMessages">
+            <div class="system-notification">
+              <div class="sys-dot"></div>
+              <span>Convai Client initialized. Ready for speech or text input.</span>
+            </div>
+            <!-- Dynamic chat messages will be inserted here -->
+          </div>
+
+          <!-- Chat Input Bar -->
+          <form class="chat-input-bar" id="chatForm">
+            <div class="input-glow-wrapper">
+              <input type="text" id="chatInput" placeholder="Type a message or question to your character..." autocomplete="off" />
+              <button type="button" class="input-inline-btn" id="inlineMicBtn" title="Toggle Voice Mic">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+                  <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+                </svg>
+              </button>
+              <button type="submit" class="chat-send-btn" id="sendBtn" title="Send Text Message">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="22" y1="2" x2="11" y2="13"/>
+                  <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+                </svg>
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Tab 2: ARKit Visemes & Facial Telemetry -->
+        <div class="tab-pane" id="pane-telemetry">
+          <div class="telemetry-header">
+            <div>
+              <h3>ARKit 52 Blendshapes & Facial Visemes</h3>
+              <p class="section-subtext">Real-time lipsync, emotional expression, and facial blendshape coefficients streamed from Convai gRPC.</p>
+            </div>
+            <div class="telemetry-pill">
+              <span class="dot-blink"></span>
+              <span id="currentVisemeId">Viseme: 0 (Sil)</span>
+            </div>
+          </div>
+
+          <div class="blendshapes-grid" id="blendshapesGrid">
+            <!-- 16 Key Blendshapes Telemetry Bars -->
+            <div class="blendshape-item" data-shape="jawOpen">
+              <div class="bs-label"><span>jawOpen</span><span class="bs-val" id="val-jawOpen">0.00</span></div>
+              <div class="bs-progress"><div class="bs-bar" id="bar-jawOpen" style="width: 0%"></div></div>
+            </div>
+            <div class="blendshape-item" data-shape="mouthSmileLeft">
+              <div class="bs-label"><span>mouthSmileLeft</span><span class="bs-val" id="val-mouthSmileLeft">0.00</span></div>
+              <div class="bs-progress"><div class="bs-bar" id="bar-mouthSmileLeft" style="width: 0%"></div></div>
+            </div>
+            <div class="blendshape-item" data-shape="mouthSmileRight">
+              <div class="bs-label"><span>mouthSmileRight</span><span class="bs-val" id="val-mouthSmileRight">0.00</span></div>
+              <div class="bs-progress"><div class="bs-bar" id="bar-mouthSmileRight" style="width: 0%"></div></div>
+            </div>
+            <div class="blendshape-item" data-shape="mouthFunnel">
+              <div class="bs-label"><span>mouthFunnel</span><span class="bs-val" id="val-mouthFunnel">0.00</span></div>
+              <div class="bs-progress"><div class="bs-bar" id="bar-mouthFunnel" style="width: 0%"></div></div>
+            </div>
+            <div class="blendshape-item" data-shape="mouthPucker">
+              <div class="bs-label"><span>mouthPucker</span><span class="bs-val" id="val-mouthPucker">0.00</span></div>
+              <div class="bs-progress"><div class="bs-bar" id="bar-mouthPucker" style="width: 0%"></div></div>
+            </div>
+            <div class="blendshape-item" data-shape="mouthLowerDownLeft">
+              <div class="bs-label"><span>mouthLowerDownLeft</span><span class="bs-val" id="val-mouthLowerDownLeft">0.00</span></div>
+              <div class="bs-progress"><div class="bs-bar" id="bar-mouthLowerDownLeft" style="width: 0%"></div></div>
+            </div>
+            <div class="blendshape-item" data-shape="mouthUpperUpLeft">
+              <div class="bs-label"><span>mouthUpperUpLeft</span><span class="bs-val" id="val-mouthUpperUpLeft">0.00</span></div>
+              <div class="bs-progress"><div class="bs-bar" id="bar-mouthUpperUpLeft" style="width: 0%"></div></div>
+            </div>
+            <div class="blendshape-item" data-shape="eyeBlinkLeft">
+              <div class="bs-label"><span>eyeBlinkLeft</span><span class="bs-val" id="val-eyeBlinkLeft">0.00</span></div>
+              <div class="bs-progress"><div class="bs-bar" id="bar-eyeBlinkLeft" style="width: 0%"></div></div>
+            </div>
+            <div class="blendshape-item" data-shape="eyeBlinkRight">
+              <div class="bs-label"><span>eyeBlinkRight</span><span class="bs-val" id="val-eyeBlinkRight">0.00</span></div>
+              <div class="bs-progress"><div class="bs-bar" id="bar-eyeBlinkRight" style="width: 0%"></div></div>
+            </div>
+            <div class="blendshape-item" data-shape="browInnerUp">
+              <div class="bs-label"><span>browInnerUp</span><span class="bs-val" id="val-browInnerUp">0.00</span></div>
+              <div class="bs-progress"><div class="bs-bar" id="bar-browInnerUp" style="width: 0%"></div></div>
+            </div>
+            <div class="blendshape-item" data-shape="cheekPuff">
+              <div class="bs-label"><span>cheekPuff</span><span class="bs-val" id="val-cheekPuff">0.00</span></div>
+              <div class="bs-progress"><div class="bs-bar" id="bar-cheekPuff" style="width: 0%"></div></div>
+            </div>
+            <div class="blendshape-item" data-shape="jawForward">
+              <div class="bs-label"><span>jawForward</span><span class="bs-val" id="val-jawForward">0.00</span></div>
+              <div class="bs-progress"><div class="bs-bar" id="bar-jawForward" style="width: 0%"></div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 3: Narrative Triggers & Actions -->
+        <div class="tab-pane" id="pane-triggers">
+          <div class="narrative-toolset">
+            <h3>Invoke Narrative Design Triggers</h3>
+            <p class="section-subtext">Trigger scripted branching narratives, behaviors, and custom character state changes via <code>convaiClient.invokeTrigger(name, message)</code>.</p>
+
+            <div class="trigger-form">
+              <div class="form-group">
+                <label for="triggerNameInput">Trigger Name / Identifier</label>
+                <input type="text" id="triggerNameInput" class="cyber-input" placeholder="e.g. greeting_trigger, attack_stance, quest_briefing" value="greeting_trigger">
+              </div>
+              <div class="form-group">
+                <label for="triggerMessageInput">Optional Trigger Message / Payload</label>
+                <input type="text" id="triggerMessageInput" class="cyber-input" placeholder="e.g. Player entered sector 7" value="User initialized interactive dialogue">
+              </div>
+              <button type="button" class="btn-primary-neon" id="sendTriggerBtn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                <span>Dispatch Trigger</span>
+              </button>
+            </div>
+
+            <div class="quick-triggers-section">
+              <h4>Quick Trigger Templates:</h4>
+              <div class="quick-trigger-buttons">
+                <button class="btn-secondary-cyber" data-tname="greeting" data-tmsg="Welcome the traveler">🎉 Greeting</button>
+                <button class="btn-secondary-cyber" data-tname="quest_offer" data-tmsg="Offer quest to find the lost power core">📜 Quest Offer</button>
+                <button class="btn-secondary-cyber" data-tname="lore_reveal" data-tmsg="Reveal secret ancient cyber history">🌌 Lore Reveal</button>
+                <button class="btn-secondary-cyber" data-tname="alarm_alert" data-tmsg="Security breached in sector 4">🚨 Security Alert</button>
+              </div>
+            </div>
+
+            <div class="triggers-history-box" id="triggerHistory">
+              <div class="history-item empty">No triggers dispatched yet.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 4: Raw gRPC Stream & Event Logs -->
+        <div class="tab-pane" id="pane-logs">
+          <div class="logs-toolbar">
+            <div class="logs-stats">
+              <span class="log-count" id="logCount">0 events</span>
+              <span class="latency-stat" id="grpcLatency">Latency: -- ms</span>
+            </div>
+            <button class="btn-xs-cyber" id="clearLogsBtn">Clear Logs</button>
+          </div>
+          <div class="logs-stream-container" id="logsStream">
+            <div class="log-row info">
+              <span class="log-time">[INIT]</span>
+              <span class="log-msg">Convai Web SDK v0.1.4 ready. Initialized gRPC client hooks.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Configuration & Credentials Modal -->
+  <div class="modal-overlay" id="configModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <div class="modal-icon">⚙️</div>
+          <h3>Convai Credentials & Character Settings</h3>
+        </div>
+        <button class="modal-close-btn" id="closeSettingsBtn">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="credentials-tip">
+          <strong>ℹ️ Setup Note:</strong> In <em>Simulation Mode</em>, you can interact without an API key! To connect directly to your live Convai character, enter your credentials below and switch to <em>Live Convai API</em>.
+        </div>
+
+        <div class="form-group">
+          <label for="cfgApiKey">Convai API Key</label>
+          <div class="input-password-wrap">
+            <input type="password" id="cfgApiKey" class="cyber-input" placeholder="Enter your Convai API Key..." />
+            <button type="button" class="btn-toggle-vis" id="toggleApiKeyVis">👁️</button>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="cfgCharacterId">Character ID</label>
+          <input type="text" id="cfgCharacterId" class="cyber-input" placeholder="e.g. 176c13fe-992a-11ee-8e42-42010a7be00e" />
+        </div>
+
+        <div class="form-row-2">
+          <div class="form-group">
+            <label for="cfgSessionId">Session ID</label>
+            <input type="text" id="cfgSessionId" class="cyber-input" placeholder="-1 (generates new)" value="-1" />
+          </div>
+          <div class="form-group">
+            <label for="cfgLanguage">Language Code</label>
+            <select id="cfgLanguage" class="cyber-select">
+              <option value="en-US" selected>English (en-US)</option>
+              <option value="en-GB">English (en-GB)</option>
+              <option value="es-ES">Spanish (es-ES)</option>
+              <option value="fr-FR">French (fr-FR)</option>
+              <option value="de-DE">German (de-DE)</option>
+              <option value="hi-IN">Hindi (hi-IN)</option>
+              <option value="ja-JP">Japanese (ja-JP)</option>
+              <option value="zh-CN">Chinese (zh-CN)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row-2">
+          <div class="form-group">
+            <label for="cfgFaceModel">Face Blendshape Model</label>
+            <select id="cfgFaceModel" class="cyber-select">
+              <option value="3" selected>Face Model 3: ARKit BlendShapes</option>
+              <option value="1">Face Model 1: OVR Lipsync</option>
+              <option value="0">Face Model 0: None</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="cfgSpeakerName">User / Speaker Name</label>
+            <input type="text" id="cfgSpeakerName" class="cyber-input" placeholder="User" value="User" />
+          </div>
+        </div>
+
+        <div class="toggles-grid">
+          <label class="switch-label">
+            <input type="checkbox" id="cfgEnableAudio" checked>
+            <span class="switch-slider"></span>
+            <span class="switch-text">Enable Character Voice Audio</span>
+          </label>
+          <label class="switch-label">
+            <input type="checkbox" id="cfgEnableFacialData" checked>
+            <span class="switch-slider"></span>
+            <span class="switch-text">Enable Facial Viseme Data</span>
+          </label>
+          <label class="switch-label">
+            <input type="checkbox" id="cfgMicUsage" checked>
+            <span class="switch-slider"></span>
+            <span class="switch-text">Enable Microphone Access</span>
+          </label>
+          <label class="switch-label">
+            <input type="checkbox" id="cfgTextOnly">
+            <span class="switch-slider"></span>
+            <span class="switch-text">Text-Only Responses (No Audio)</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn-secondary-cyber" id="clearCredentialsBtn">Clear Saved</button>
+        <button type="button" class="btn-primary-neon" id="saveCredentialsBtn">Save & Apply Config</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Load Convai Web SDK UMD Bundle -->
+  <script src="dist/umd/convai-web-client.umd.js"></script>
+  <!-- Load Main Application Logic -->
+  <script src="app.js"></script>
+</body>
+</html>
